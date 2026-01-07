@@ -2,6 +2,7 @@ interface InputFormProps {
   value: string;
   onInput: (value: string) => void;
   onSubmit: () => void;
+  onHome: () => void;
   disabled: boolean;
 }
 
@@ -26,14 +27,24 @@ export function InputForm(props: InputFormProps) {
         }}
         autofocus
       />
-      <button
-        type="submit"
-        disabled={props.disabled || !props.value.trim()}
-        class="w-full py-3 font-medium transition-opacity hover:opacity-70 disabled:opacity-30 disabled:cursor-not-allowed"
-        style={{ color: 'var(--text)', border: '1px solid var(--text-muted)' }}
-      >
-        submit
-      </button>
+      <div class="flex gap-4">
+        <button
+          type="button"
+          onClick={props.onHome}
+          class="flex-1 py-3 font-medium transition-opacity hover:opacity-70"
+          style={{ color: 'var(--text-muted)', border: '1px solid var(--text-muted)' }}
+        >
+          home
+        </button>
+        <button
+          type="submit"
+          disabled={props.disabled || !props.value.trim()}
+          class="flex-1 py-3 font-medium transition-opacity hover:opacity-70 disabled:opacity-30 disabled:cursor-not-allowed"
+          style={{ color: 'var(--text)', border: '1px solid var(--text-muted)' }}
+        >
+          submit
+        </button>
+      </div>
     </form>
   );
 }

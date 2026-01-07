@@ -3,6 +3,7 @@ import type { ScoreResult } from '../utils/scoring';
 interface ResultsProps {
   result: ScoreResult;
   onTryAgain: () => void;
+  onHome: () => void;
 }
 
 export function Results(props: ResultsProps) {
@@ -46,13 +47,22 @@ export function Results(props: ResultsProps) {
         </div>
       </div>
 
-      <button
-        onClick={props.onTryAgain}
-        class="w-full py-3 font-medium transition-opacity hover:opacity-70"
-        style={{ color: 'var(--text)', border: '1px solid var(--text-muted)' }}
-      >
-        try again
-      </button>
+      <div class="flex gap-4">
+        <button
+          onClick={props.onHome}
+          class="flex-1 py-3 font-medium transition-opacity hover:opacity-70"
+          style={{ color: 'var(--text-muted)', border: '1px solid var(--text-muted)' }}
+        >
+          home
+        </button>
+        <button
+          onClick={props.onTryAgain}
+          class="flex-1 py-3 font-medium transition-opacity hover:opacity-70"
+          style={{ color: 'var(--text)', border: '1px solid var(--text-muted)' }}
+        >
+          try again
+        </button>
+      </div>
     </div>
   );
 }

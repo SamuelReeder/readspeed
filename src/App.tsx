@@ -10,7 +10,7 @@ import { createTheme } from './primitives/createTheme';
 import { getRandomText, splitIntoWords } from './utils/wordLists';
 import { calculateScore, type ScoreResult } from './utils/scoring';
 
-type GameState = 'idle' | 'running' | 'input' | 'results';
+type GameState = 'idle' | 'running' | 'practicing' | 'input' | 'results';
 
 function App() {
   const [gameState, setGameState] = createSignal<GameState>('idle');
@@ -34,7 +34,8 @@ function App() {
   const currentWord = createMemo(() => {
     const w = words();
     // In idle state, always show first word; otherwise use timer index
-    const idx = gameState() === 'idle' ? 0 : timer.currentIndex();
+    const state = gameState();
+    const idx = state === 'idle' ? 0 : timer.currentIndex();
     return w[idx] || '';
   });
 
@@ -71,6 +72,39 @@ function App() {
     setUserInput('');
     setResult(null);
   };
+
+  const handleGoHome = () => {
+    timer.reset();
+    setGameState('idle');
+    setCurrentText(getRandomText(wordCount()));
+    setUserInput('');
+    setResult(null);
+  };
+
+  const handleStartPractice = () => {
+    setGameState('practicing');
+    setTimeout(() => {
+      timer.reset();
+      timer.start();
+    }, 50);
+  };
+
+  const handleStopPractice = () => {
+    timer.reset();
+    setGameState('idle');
+    setCurrentText(getRandomText(wordCount()));
+  };
+
+  // Loop practice mode when words finish
+  createMemo(() => {
+    if (timer.isFinished() && gameState() === 'practicing') {
+      setCurrentText(getRandomText(wordCount()));
+      setTimeout(() => {
+        timer.reset();
+        timer.start();
+      }, 50);
+    }
+  });
 
   return (
     <div class="min-h-screen flex flex-col" style={{ background: 'var(--bg)', color: 'var(--text)' }}>
@@ -115,7 +149,7 @@ function App() {
           <div class="mb-16">
             <WordDisplay
               word={currentWord()}
-              isRunning={gameState() === 'running'}
+              isRunning={gameState() === 'running' || gameState() === 'practicing'}
               isFinished={gameState() === 'input' || gameState() === 'results'}
             />
           </div>
@@ -131,13 +165,22 @@ function App() {
                 disabled={false}
               />
 
-              <button
-                onClick={handleStart}
-                class="w-full py-3 font-medium transition-opacity hover:opacity-70"
-                style={{ color: 'var(--text)', border: '1px solid var(--text-muted)' }}
-              >
-                start
-              </button>
+              <div class="flex gap-4">
+                <button
+                  onClick={handleStartPractice}
+                  class="flex-1 py-3 font-medium transition-opacity hover:opacity-70"
+                  style={{ color: 'var(--text)', border: '1px solid var(--text-muted)' }}
+                >
+                  practice
+                </button>
+                <button
+                  onClick={handleStart}
+                  class="flex-1 py-3 font-medium transition-opacity hover:opacity-70"
+                  style={{ color: 'var(--text)', border: '1px solid var(--text-muted)' }}
+                >
+                  start
+                </button>
+              </div>
             </div>
           </Show>
 
@@ -154,17 +197,28 @@ function App() {
             </div>
           </Show>
 
+          <Show when={gameState() === 'practicing'}>
+            <button
+              onClick={handleStopPractice}
+              class="w-full py-3 font-medium transition-opacity hover:opacity-70"
+              style={{ color: 'var(--text)', border: '1px solid var(--text-muted)' }}
+            >
+              stop
+            </button>
+          </Show>
+
           <Show when={gameState() === 'input'}>
             <InputForm
               value={userInput()}
               onInput={setUserInput}
               onSubmit={handleSubmit}
+              onHome={handleGoHome}
               disabled={false}
             />
           </Show>
 
           <Show when={gameState() === 'results' && result()}>
-            <Results result={result()!} onTryAgain={handleTryAgain} />
+            <Results result={result()!} onTryAgain={handleTryAgain} onHome={handleGoHome} />
           </Show>
         </div>
       </main>
