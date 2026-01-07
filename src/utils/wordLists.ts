@@ -1,6 +1,6 @@
 import { generateSentence } from './markov';
 
-export function getRandomText(wordCount: number = 20): string {
+export function getRandomText(wordCount: number = 10): string {
   return generateSentence(wordCount);
 }
 

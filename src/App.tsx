@@ -14,8 +14,8 @@ type GameState = 'idle' | 'running' | 'input' | 'results';
 
 function App() {
   const [gameState, setGameState] = createSignal<GameState>('idle');
-  const [intervalMs, setIntervalMs] = createSignal(500);
-  const [currentText, setCurrentText] = createSignal('');
+  const [intervalMs, setIntervalMs] = createSignal(200);
+  const [currentText, setCurrentText] = createSignal(getRandomText());
   const [userInput, setUserInput] = createSignal('');
   const [result, setResult] = createSignal<ScoreResult | null>(null);
 
@@ -61,7 +61,7 @@ function App() {
   const handleTryAgain = () => {
     timer.reset();
     setGameState('idle');
-    setCurrentText('');
+    setCurrentText(getRandomText());
     setUserInput('');
     setResult(null);
   };

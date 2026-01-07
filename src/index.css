@@ -4,14 +4,14 @@
   --bg: #000000;
   --text: #ffffff;
   --text-muted: #666666;
-  --accent: #666666;
+  --accent: #e53935;
 }
 
 [data-theme="light"] {
   --bg: #ffffff;
   --text: #000000;
   --text-muted: #999999;
-  --accent: #999999;
+  --accent: #c62828;
 }
 
 * {

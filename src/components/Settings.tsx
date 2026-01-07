@@ -5,11 +5,10 @@ interface SettingsProps {
 }
 
 const presets = [
-  { label: '1s', wpm: 60, value: 1000 },
-  { label: '500ms', wpm: 120, value: 500 },
   { label: '300ms', wpm: 200, value: 300 },
   { label: '200ms', wpm: 300, value: 200 },
   { label: '100ms', wpm: 600, value: 100 },
+  { label: '67ms', wpm: 900, value: 67 },
 ];
 
 export function Settings(props: SettingsProps) {
@@ -19,7 +18,7 @@ export function Settings(props: SettingsProps) {
         {presets.map(preset => (
           <button
             type="button"
-            class="px-3 py-1 text-sm transition-opacity hover:opacity-70"
+            class="px-3 py-1 text-sm whitespace-nowrap transition-opacity hover:opacity-70"
             style={{
               color: props.intervalMs === preset.value ? 'var(--text)' : 'var(--text-muted)',
               'border-bottom': props.intervalMs === preset.value ? '1px solid var(--text)' : '1px solid transparent'
@@ -36,13 +35,13 @@ export function Settings(props: SettingsProps) {
         <input
           type="range"
           min="50"
-          max="2000"
-          step="50"
+          max="500"
+          step="1"
           value={props.intervalMs}
           onInput={(e) => props.onIntervalChange(parseInt(e.currentTarget.value))}
           disabled={props.disabled}
           class="w-48 h-px appearance-none cursor-pointer"
-          style={{ background: 'var(--text-muted)' }}
+          style={{ background: 'var(--text-muted)', direction: 'rtl' }}
         />
         <span class="text-sm" style={{ color: 'var(--text-muted)' }}>
           {props.intervalMs}ms · {Math.round(60000 / props.intervalMs)} wpm
