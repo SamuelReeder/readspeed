@@ -3,7 +3,6 @@ interface InputFormProps {
   onInput: (value: string) => void;
   onSubmit: () => void;
   disabled: boolean;
-  placeholder?: string;
 }
 
 export function InputForm(props: InputFormProps) {
@@ -13,24 +12,27 @@ export function InputForm(props: InputFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} class="space-y-4">
-      <label class="block text-sm font-medium text-gray-300">
-        Type what you remember
-      </label>
+    <form onSubmit={handleSubmit} class="space-y-6">
       <textarea
         value={props.value}
         onInput={(e) => props.onInput(e.currentTarget.value)}
         disabled={props.disabled}
-        placeholder={props.placeholder || 'Type the words you saw...'}
+        placeholder="type what you remember..."
         rows={4}
-        class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none disabled:opacity-50"
+        class="w-full px-4 py-3 bg-transparent resize-none focus:outline-none"
+        style={{
+          color: 'var(--text)',
+          border: '1px solid var(--text-muted)'
+        }}
+        autofocus
       />
       <button
         type="submit"
         disabled={props.disabled || !props.value.trim()}
-        class="w-full px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        class="w-full py-3 font-medium transition-opacity hover:opacity-70 disabled:opacity-30 disabled:cursor-not-allowed"
+        style={{ color: 'var(--text)', border: '1px solid var(--text-muted)' }}
       >
-        Submit Answer
+        submit
       </button>
     </form>
   );

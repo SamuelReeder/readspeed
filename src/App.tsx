@@ -3,9 +3,10 @@ import { WordDisplay } from './components/WordDisplay';
 import { Settings } from './components/Settings';
 import { InputForm } from './components/InputForm';
 import { Results } from './components/Results';
-import { Stats } from './components/Stats';
+// import { Stats } from './components/Stats';
 import { createWordTimer } from './primitives/createTimer';
 import { createStats } from './primitives/createStats';
+import { createTheme } from './primitives/createTheme';
 import { getRandomText, splitIntoWords } from './utils/wordLists';
 import { calculateScore, type ScoreResult } from './utils/scoring';
 
@@ -20,6 +21,7 @@ function App() {
 
   const words = createMemo(() => splitIntoWords(currentText()));
   const stats = createStats();
+  const theme = createTheme();
 
   const timer = createWordTimer(words, intervalMs);
 
@@ -36,14 +38,12 @@ function App() {
     setResult(null);
     setGameState('running');
 
-    // Small delay to ensure state is updated before starting timer
     setTimeout(() => {
       timer.reset();
       timer.start();
     }, 50);
   };
 
-  // Watch for timer finishing
   createMemo(() => {
     if (timer.isFinished() && gameState() === 'running') {
       setGameState('input');
@@ -67,69 +67,108 @@ function App() {
   };
 
   return (
-    <div class="min-h-screen bg-gray-900 text-white p-4">
-      <div class="max-w-2xl mx-auto space-y-6">
-        <header class="text-center py-6">
-          <h1 class="text-4xl font-bold mb-2">ReadSpeed</h1>
-          <p class="text-gray-400">Test your reading speed and memory</p>
-        </header>
+    <div class="min-h-screen flex flex-col" style={{ background: 'var(--bg)', color: 'var(--text)' }}>
+      {/* Header */}
+      <header class="flex items-center justify-between px-6 py-4">
+        <button
+          onClick={theme.toggle}
+          class="w-10 h-10 flex items-center justify-center rounded-lg transition-colors hover:opacity-70"
+          style={{ color: 'var(--text-muted)' }}
+          aria-label="Toggle theme"
+        >
+          <Show when={theme.isDark()} fallback={
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="4"/>
+              <path d="M12 2v2"/>
+              <path d="M12 20v2"/>
+              <path d="m4.93 4.93 1.41 1.41"/>
+              <path d="m17.66 17.66 1.41 1.41"/>
+              <path d="M2 12h2"/>
+              <path d="M20 12h2"/>
+              <path d="m6.34 17.66-1.41 1.41"/>
+              <path d="m19.07 4.93-1.41 1.41"/>
+            </svg>
+          }>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+            </svg>
+          </Show>
+        </button>
 
-        <WordDisplay
-          word={currentWord()}
-          isRunning={gameState() === 'running'}
-          isFinished={gameState() === 'input' || gameState() === 'results'}
-        />
+        <h1 class="text-xl font-medium tracking-tight" style={{ color: 'var(--text-muted)' }}>
+          readspeed
+        </h1>
 
-        <Show when={gameState() === 'idle'}>
-          <Settings
-            intervalMs={intervalMs()}
-            onIntervalChange={setIntervalMs}
-            disabled={gameState() !== 'idle'}
-          />
+        <div class="w-10" /> {/* Spacer for balance */}
+      </header>
 
-          <button
-            onClick={handleStart}
-            class="w-full px-6 py-4 bg-blue-600 text-white text-xl font-bold rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Start Test
-          </button>
-        </Show>
+      {/* Main Content - Centered */}
+      <main class="flex-1 flex flex-col items-center justify-center px-6">
+        <div class="w-full max-w-xl">
+          {/* Word Display - Always visible, takes center stage */}
+          <div class="mb-16">
+            <WordDisplay
+              word={currentWord()}
+              isRunning={gameState() === 'running'}
+              isFinished={gameState() === 'input' || gameState() === 'results'}
+            />
+          </div>
 
-        <Show when={gameState() === 'running'}>
-          <div class="text-center">
-            <p class="text-gray-400">
-              Word {timer.currentIndex() + 1} of {words().length}
-            </p>
-            <div class="w-full bg-gray-700 rounded-full h-2 mt-2">
+          {/* Controls below word display */}
+          <Show when={gameState() === 'idle'}>
+            <div class="space-y-8">
+              <Settings
+                intervalMs={intervalMs()}
+                onIntervalChange={setIntervalMs}
+                disabled={false}
+              />
+
+              <button
+                onClick={handleStart}
+                class="w-full py-3 font-medium transition-opacity hover:opacity-70"
+                style={{ color: 'var(--text)', border: '1px solid var(--text-muted)' }}
+              >
+                start
+              </button>
+            </div>
+          </Show>
+
+          <Show when={gameState() === 'running'}>
+            {/* Minimal progress indicator - just a thin line */}
+            <div class="w-full h-px" style={{ background: 'var(--text-muted)' }}>
               <div
-                class="bg-blue-600 h-2 rounded-full transition-all duration-100"
-                style={{ width: `${((timer.currentIndex() + 1) / words().length) * 100}%` }}
+                class="h-full transition-all duration-100"
+                style={{
+                  width: `${((timer.currentIndex() + 1) / words().length) * 100}%`,
+                  background: 'var(--text)'
+                }}
               />
             </div>
-          </div>
-        </Show>
+          </Show>
 
-        <Show when={gameState() === 'input'}>
-          <InputForm
-            value={userInput()}
-            onInput={setUserInput}
-            onSubmit={handleSubmit}
-            disabled={false}
-            placeholder="Type the words you remember from the passage..."
-          />
-        </Show>
+          <Show when={gameState() === 'input'}>
+            <InputForm
+              value={userInput()}
+              onInput={setUserInput}
+              onSubmit={handleSubmit}
+              disabled={false}
+            />
+          </Show>
 
-        <Show when={gameState() === 'results' && result()}>
-          <Results result={result()!} onTryAgain={handleTryAgain} />
-        </Show>
+          <Show when={gameState() === 'results' && result()}>
+            <Results result={result()!} onTryAgain={handleTryAgain} />
+          </Show>
+        </div>
+      </main>
 
-        <Stats
-          sessions={stats.sessions()}
-          averageAccuracy={stats.getAverageAccuracy()}
-          bestAccuracy={stats.getBestAccuracy()}
-          onClear={stats.clearStats}
-        />
-      </div>
+      {/* Stats section - commented out for now
+      <Stats
+        sessions={stats.sessions()}
+        averageAccuracy={stats.getAverageAccuracy()}
+        bestAccuracy={stats.getBestAccuracy()}
+        onClear={stats.clearStats}
+      />
+      */}
     </div>
   );
 }

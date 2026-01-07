@@ -8,16 +8,22 @@ interface WordDisplayProps {
 
 export function WordDisplay(props: WordDisplayProps) {
   return (
-    <div class="flex items-center justify-center h-48 bg-gray-900 rounded-lg border border-gray-700">
+    <div class="flex items-center justify-center h-32">
       <Show
         when={props.isRunning}
         fallback={
-          <span class="text-gray-500 text-2xl">
-            {props.isFinished ? 'Finished!' : 'Press Start to begin'}
+          <span
+            class="text-2xl"
+            style={{ color: 'var(--text-muted)' }}
+          >
+            {props.isFinished ? 'done' : ''}
           </span>
         }
       >
-        <span class="text-6xl font-bold text-white animate-pulse">
+        <span
+          class="text-5xl md:text-6xl font-bold"
+          style={{ color: 'var(--text)' }}
+        >
           {props.word}
         </span>
       </Show>

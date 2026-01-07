@@ -1,1 +1,72 @@
 @import "tailwindcss";
+
+:root {
+  --bg: #000000;
+  --text: #ffffff;
+  --text-muted: #666666;
+  --accent: #666666;
+}
+
+[data-theme="light"] {
+  --bg: #ffffff;
+  --text: #000000;
+  --text-muted: #999999;
+  --accent: #999999;
+}
+
+* {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  margin: 0;
+  min-height: 100vh;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+::selection {
+  background-color: var(--text);
+  color: var(--bg);
+}
+
+::placeholder {
+  color: var(--text-muted);
+}
+
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--text-muted);
+  height: 1px;
+  cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  background: var(--text);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  background: var(--text);
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+}
+
+textarea {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+button {
+  cursor: pointer;
+  background: transparent;
+}
