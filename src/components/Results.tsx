@@ -8,7 +8,7 @@ interface ResultsProps {
 export function Results(props: ResultsProps) {
   return (
     <div class="space-y-8">
-      <div class="flex justify-center gap-12">
+      <div class="flex justify-center gap-8">
         <div class="text-center">
           <div class="text-4xl font-bold" style={{ color: 'var(--text)' }}>
             {props.result.accuracy.toFixed(0)}%
@@ -20,7 +20,16 @@ export function Results(props: ResultsProps) {
 
         <div class="text-center">
           <div class="text-4xl font-bold" style={{ color: 'var(--text)' }}>
-            {props.result.correctWords}/{props.result.totalWords}
+            {props.result.longestSequence}/{props.result.totalWords}
+          </div>
+          <div class="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
+            sequence
+          </div>
+        </div>
+
+        <div class="text-center">
+          <div class="text-4xl font-bold" style={{ color: 'var(--text)' }}>
+            {props.result.wordMatchCount}/{props.result.totalWords}
           </div>
           <div class="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
             words
@@ -29,10 +38,10 @@ export function Results(props: ResultsProps) {
 
         <div class="text-center">
           <div class="text-4xl font-bold" style={{ color: 'var(--text)' }}>
-            {props.result.wordsPerMinute.toFixed(0)}
+            {props.result.positionMatchCount}/{props.result.totalWords}
           </div>
           <div class="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
-            wpm
+            position
           </div>
         </div>
       </div>

@@ -15,9 +15,15 @@ type GameState = 'idle' | 'running' | 'input' | 'results';
 function App() {
   const [gameState, setGameState] = createSignal<GameState>('idle');
   const [intervalMs, setIntervalMs] = createSignal(200);
-  const [currentText, setCurrentText] = createSignal(getRandomText());
+  const [wordCount, setWordCount] = createSignal(10);
+  const [currentText, setCurrentText] = createSignal(getRandomText(10));
   const [userInput, setUserInput] = createSignal('');
   const [result, setResult] = createSignal<ScoreResult | null>(null);
+
+  const handleWordCountChange = (count: number) => {
+    setWordCount(count);
+    setCurrentText(getRandomText(count));
+  };
 
   const words = createMemo(() => splitIntoWords(currentText()));
   const stats = createStats();
@@ -27,13 +33,13 @@ function App() {
 
   const currentWord = createMemo(() => {
     const w = words();
-    const idx = timer.currentIndex();
+    // In idle state, always show first word; otherwise use timer index
+    const idx = gameState() === 'idle' ? 0 : timer.currentIndex();
     return w[idx] || '';
   });
 
   const handleStart = () => {
-    const text = getRandomText();
-    setCurrentText(text);
+    // Don't regenerate text - use the preview text as the test
     setUserInput('');
     setResult(null);
     setGameState('running');
@@ -61,7 +67,7 @@ function App() {
   const handleTryAgain = () => {
     timer.reset();
     setGameState('idle');
-    setCurrentText(getRandomText());
+    setCurrentText(getRandomText(wordCount()));
     setUserInput('');
     setResult(null);
   };
@@ -120,6 +126,8 @@ function App() {
               <Settings
                 intervalMs={intervalMs()}
                 onIntervalChange={setIntervalMs}
+                wordCount={wordCount()}
+                onWordCountChange={handleWordCountChange}
                 disabled={false}
               />
 
@@ -169,6 +177,19 @@ function App() {
         onClear={stats.clearStats}
       />
       */}
+
+      {/* Footer */}
+      <footer class="px-6 py-4 text-center">
+        <a
+          href="https://youtu.be/NdKcDPBQ-Lw?si=jKcvbZzYNTeVG80N"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="text-xs underline transition-opacity hover:opacity-70"
+          style={{ color: 'var(--text-muted)' }}
+        >
+          inspired by this video
+        </a>
+      </footer>
     </div>
   );
 }

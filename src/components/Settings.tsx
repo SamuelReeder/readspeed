@@ -1,6 +1,8 @@
 interface SettingsProps {
   intervalMs: number;
   onIntervalChange: (ms: number) => void;
+  wordCount: number;
+  onWordCountChange: (count: number) => void;
   disabled: boolean;
 }
 
@@ -31,21 +33,40 @@ export function Settings(props: SettingsProps) {
         ))}
       </div>
 
-      <div class="flex items-center justify-center gap-4">
-        <input
-          type="range"
-          min="50"
-          max="500"
-          step="1"
-          value={props.intervalMs}
-          onInput={(e) => props.onIntervalChange(parseInt(e.currentTarget.value))}
-          disabled={props.disabled}
-          class="w-48 h-px appearance-none cursor-pointer"
-          style={{ background: 'var(--text-muted)', direction: 'rtl' }}
-        />
-        <span class="text-sm" style={{ color: 'var(--text-muted)' }}>
-          {props.intervalMs}ms · {Math.round(60000 / props.intervalMs)} wpm
-        </span>
+      <div class="flex items-center justify-center gap-8">
+        <div class="flex items-center gap-2">
+          <input
+            type="range"
+            min="50"
+            max="500"
+            step="1"
+            value={props.intervalMs}
+            onInput={(e) => props.onIntervalChange(parseInt(e.currentTarget.value))}
+            disabled={props.disabled}
+            class="w-32 h-px appearance-none cursor-pointer"
+            style={{ background: 'var(--text-muted)', direction: 'rtl' }}
+          />
+          <span class="text-sm whitespace-nowrap" style={{ color: 'var(--text-muted)' }}>
+            {props.intervalMs}ms · {Math.round(60000 / props.intervalMs)} wpm
+          </span>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <input
+            type="range"
+            min="5"
+            max="20"
+            step="1"
+            value={props.wordCount}
+            onInput={(e) => props.onWordCountChange(parseInt(e.currentTarget.value))}
+            disabled={props.disabled}
+            class="w-24 h-px appearance-none cursor-pointer"
+            style={{ background: 'var(--text-muted)' }}
+          />
+          <span class="text-sm whitespace-nowrap" style={{ color: 'var(--text-muted)' }}>
+            {props.wordCount} words
+          </span>
+        </div>
       </div>
     </div>
   );
