@@ -5,11 +5,11 @@ interface SettingsProps {
 }
 
 const presets = [
-  { label: '1s', value: 1000 },
-  { label: '500ms', value: 500 },
-  { label: '300ms', value: 300 },
-  { label: '200ms', value: 200 },
-  { label: '100ms', value: 100 },
+  { label: '1s', wpm: 60, value: 1000 },
+  { label: '500ms', wpm: 120, value: 500 },
+  { label: '300ms', wpm: 200, value: 300 },
+  { label: '200ms', wpm: 300, value: 200 },
+  { label: '100ms', wpm: 600, value: 100 },
 ];
 
 export function Settings(props: SettingsProps) {
@@ -27,7 +27,7 @@ export function Settings(props: SettingsProps) {
             onClick={() => props.onIntervalChange(preset.value)}
             disabled={props.disabled}
           >
-            {preset.label}
+            {preset.label} · {preset.wpm} wpm
           </button>
         ))}
       </div>
@@ -44,8 +44,8 @@ export function Settings(props: SettingsProps) {
           class="w-48 h-px appearance-none cursor-pointer"
           style={{ background: 'var(--text-muted)' }}
         />
-        <span class="text-sm w-16" style={{ color: 'var(--text-muted)' }}>
-          {props.intervalMs}ms
+        <span class="text-sm" style={{ color: 'var(--text-muted)' }}>
+          {props.intervalMs}ms · {Math.round(60000 / props.intervalMs)} wpm
         </span>
       </div>
     </div>
