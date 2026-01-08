@@ -16,7 +16,7 @@ const presets = [
 export function Settings(props: SettingsProps) {
   return (
     <div class="space-y-6">
-      <div class="flex flex-wrap justify-center gap-2 md:gap-4">
+      <div class="flex flex-wrap md:flex-nowrap justify-center gap-2 md:gap-4">
         {presets.map(preset => (
           <button
             type="button"
