@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:corpus": "node scripts/filter-corpus.js",
     "preview": "vite preview",
     "deploy": "npm run build && gh-pages -d dist"
   },
@@ -16,6 +17,7 @@
     "@tailwindcss/vite": "^4.1.18",
     "@types/node": "^24.10.1",
     "gh-pages": "^6.3.0",
+    "nlp-corpus": "^4.4.0",
     "tailwindcss": "^4.1.18",
     "typescript": "~5.9.3",
     "vite": "^7.2.4",

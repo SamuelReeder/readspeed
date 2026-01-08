@@ -58,7 +58,7 @@ function getRandomElement<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-export function generateSentence(wordCount: number = 20): string {
+export function generateSentence(wordCount: number = 20, startWord?: string): string {
   buildChain();
 
   if (sentenceStarters.length === 0) {
@@ -66,15 +66,26 @@ export function generateSentence(wordCount: number = 20): string {
   }
 
   const words: string[] = [];
-  let currentWord = getRandomElement(sentenceStarters);
+
+  // Use provided startWord if it exists in chain, otherwise pick a random starter
+  let currentWord: string;
+  if (startWord && chain[startWord]) {
+    currentWord = startWord;
+  } else {
+    currentWord = getRandomElement(sentenceStarters);
+  }
   words.push(currentWord);
+
+  // Get all words that have transitions (for dead-end recovery)
+  const allChainWords = Object.keys(chain);
 
   for (let i = 1; i < wordCount; i++) {
     const nextOptions = chain[currentWord];
 
     if (!nextOptions || nextOptions.length === 0) {
-      // Dead end - pick a new starter
-      currentWord = getRandomElement(sentenceStarters);
+      // Dead end - pick any word from chain (not a sentence starter)
+      // This maintains flow without semantic "new sentence" breaks
+      currentWord = getRandomElement(allChainWords);
     } else {
       currentWord = getRandomElement(nextOptions);
     }

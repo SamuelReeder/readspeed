@@ -45,7 +45,7 @@ export function WordDisplay(props: WordDisplayProps) {
 
         {/* Word - shifted so middle letter's center is at screen center */}
         <span
-          class="text-5xl md:text-6xl font-bold"
+          class="text-6xl md:text-7xl font-bold"
           style={{
             color: 'var(--text)',
             transform: `translateX(${shift()}ch)`

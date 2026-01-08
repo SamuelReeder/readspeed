@@ -1,7 +1,7 @@
 import { generateSentence } from './markov';
 
-export function getRandomText(wordCount: number = 10): string {
-  return generateSentence(wordCount);
+export function getRandomText(wordCount: number = 10, startWord?: string): string {
+  return generateSentence(wordCount, startWord);
 }
 
 export function splitIntoWords(text: string): string[] {

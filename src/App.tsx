@@ -22,7 +22,9 @@ function App() {
 
   const handleWordCountChange = (count: number) => {
     setWordCount(count);
-    setCurrentText(getRandomText(count));
+    // Preserve the first word (preview word) when changing word count
+    const currentFirstWord = words()[0];
+    setCurrentText(getRandomText(count, currentFirstWord));
   };
 
   const words = createMemo(() => splitIntoWords(currentText()));
