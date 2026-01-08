@@ -14,18 +14,18 @@ export function WordDisplay(props: WordDisplayProps) {
   const middle = createMemo(() => props.word[middleIndex()] || '');
   const after = createMemo(() => props.word.slice(middleIndex() + 1));
 
-  // Calculate shift to keep middle letter centered
-  // Positive value shifts right, negative shifts left
+  // Shift entire word so middle letter's center aligns with screen center
+  // Formula: (wordLength / 2) - middleIndex - 0.5
   const shift = createMemo(() => {
-    const beforeLen = before().length;
-    const afterLen = after().length;
-    return (afterLen - beforeLen) * 0.5;
+    const len = props.word.length;
+    const mid = middleIndex();
+    return (len / 2) - mid - 0.5;
   });
 
   const showWord = () => !props.isFinished && props.word;
 
   return (
-    <div class="flex items-center justify-center h-32">
+    <div class="flex flex-col items-center justify-center h-40">
       <Show
         when={showWord()}
         fallback={
@@ -37,6 +37,13 @@ export function WordDisplay(props: WordDisplayProps) {
           </span>
         }
       >
+        {/* Top bar - fixed at center */}
+        <div
+          class="w-1 h-4 mb-2"
+          style={{ background: 'var(--text-muted)' }}
+        />
+
+        {/* Word - shifted so middle letter's center is at screen center */}
         <span
           class="text-5xl md:text-6xl font-bold"
           style={{
@@ -48,6 +55,12 @@ export function WordDisplay(props: WordDisplayProps) {
           <span style={{ color: 'var(--accent)' }}>{middle()}</span>
           <span>{after()}</span>
         </span>
+
+        {/* Bottom bar - fixed at center */}
+        <div
+          class="w-1 h-4 mt-2"
+          style={{ background: 'var(--text-muted)' }}
+        />
       </Show>
     </div>
   );
