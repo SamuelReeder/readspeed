@@ -8,6 +8,8 @@ interface ResultsProps {
 }
 
 export function Results(props: ResultsProps) {
+  const totalErrors = () => props.result.substitutions + props.result.deletions + props.result.insertions;
+
   return (
     <div class="space-y-8">
       <div class="flex justify-center gap-8">
@@ -21,31 +23,20 @@ export function Results(props: ResultsProps) {
         </div>
 
         <div class="text-center">
-          <div class="text-4xl font-bold" style={{ color: 'var(--text)' }}>
-            {props.result.sequenceMatchCount}/{props.result.totalWords}
+          <div class="text-4xl font-bold" style={{ color: totalErrors() > 0 ? '#ef4444' : 'var(--text)' }}>
+            {totalErrors()}
           </div>
           <div class="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
-            sequence
+            errors
           </div>
         </div>
+      </div>
 
-        <div class="text-center">
-          <div class="text-4xl font-bold" style={{ color: 'var(--text)' }}>
-            {props.result.wordMatchCount}/{props.result.totalWords}
-          </div>
-          <div class="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
-            words
-          </div>
-        </div>
-
-        <div class="text-center">
-          <div class="text-4xl font-bold" style={{ color: 'var(--text)' }}>
-            {props.result.positionMatchCount}/{props.result.totalWords}
-          </div>
-          <div class="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
-            position
-          </div>
-        </div>
+      {/* Error breakdown */}
+      <div class="flex justify-center gap-6 text-sm" style={{ color: 'var(--text-muted)' }}>
+        <span>{props.result.substitutions} wrong</span>
+        <span>{props.result.deletions} missed</span>
+        <span>{props.result.insertions} extra</span>
       </div>
 
       {/* Visual comparison */}
