@@ -1,10 +1,17 @@
+export interface ComparisonItem {
+  original: string;
+  user: string | null;
+  correct: boolean;
+}
+
 export interface ScoreResult {
   wordMatchCount: number;
   positionMatchCount: number;
-  longestSequence: number;
+  sequenceMatchCount: number;
   totalWords: number;
   accuracy: number;
   wordsPerMinute: number;
+  comparison: ComparisonItem[];
 }
 
 function normalizeWord(word: string): string {
@@ -46,39 +53,101 @@ function countPositionMatches(original: string[], user: string[]): number {
   return matches;
 }
 
-// Find longest consecutive matching sequence
-function findLongestSequence(original: string[], user: string[]): number {
-  if (user.length === 0 || original.length === 0) return 0;
+// Compute LCS (Longest Common Subsequence) and return the matched indices
+function computeLCS(original: string[], user: string[]): number[][] {
+  const m = original.length;
+  const n = user.length;
 
-  const normalizedOriginal = original.map(normalizeWord);
+  const normalizedOrig = original.map(normalizeWord);
   const normalizedUser = user.map(normalizeWord);
 
-  let longest = 0;
+  // Build LCS table
+  const dp: number[][] = Array(m + 1).fill(null).map(() => Array(n + 1).fill(0));
 
-  // For each starting position in user input
-  for (let userStart = 0; userStart < normalizedUser.length; userStart++) {
-    // Try to find this sequence starting anywhere in original
-    for (let origStart = 0; origStart < normalizedOriginal.length; origStart++) {
-      let length = 0;
-      let u = userStart;
-      let o = origStart;
-
-      // Count consecutive matches
-      while (
-        u < normalizedUser.length &&
-        o < normalizedOriginal.length &&
-        normalizedUser[u] === normalizedOriginal[o]
-      ) {
-        length++;
-        u++;
-        o++;
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      if (normalizedOrig[i - 1] === normalizedUser[j - 1]) {
+        dp[i][j] = dp[i - 1][j - 1] + 1;
+      } else {
+        dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
       }
-
-      longest = Math.max(longest, length);
     }
   }
 
-  return longest;
+  // Backtrack to find matched pairs [origIndex, userIndex]
+  const matches: number[][] = [];
+  let i = m, j = n;
+  while (i > 0 && j > 0) {
+    if (normalizedOrig[i - 1] === normalizedUser[j - 1]) {
+      matches.unshift([i - 1, j - 1]);
+      i--;
+      j--;
+    } else if (dp[i - 1][j] > dp[i][j - 1]) {
+      i--;
+    } else {
+      j--;
+    }
+  }
+
+  return matches;
+}
+
+// Build comparison array from LCS matches
+function buildComparison(original: string[], user: string[], lcsMatches: number[][]): ComparisonItem[] {
+  const comparison: ComparisonItem[] = [];
+  const matchedOrigIndices = new Set(lcsMatches.map(m => m[0]));
+  const matchedUserIndices = new Set(lcsMatches.map(m => m[1]));
+
+  let matchIdx = 0;
+  let userIdx = 0;
+
+  for (let origIdx = 0; origIdx < original.length; origIdx++) {
+    if (matchedOrigIndices.has(origIdx)) {
+      // This original word was matched
+      const [, userMatchIdx] = lcsMatches[matchIdx];
+
+      // Add any unmatched user words before this match as incorrect
+      while (userIdx < userMatchIdx) {
+        if (!matchedUserIndices.has(userIdx)) {
+          comparison.push({
+            original: '',
+            user: user[userIdx],
+            correct: false
+          });
+        }
+        userIdx++;
+      }
+
+      comparison.push({
+        original: original[origIdx],
+        user: user[userMatchIdx],
+        correct: true
+      });
+      userIdx = userMatchIdx + 1;
+      matchIdx++;
+    } else {
+      // This original word was missed
+      comparison.push({
+        original: original[origIdx],
+        user: null,
+        correct: false
+      });
+    }
+  }
+
+  // Add any remaining unmatched user words
+  while (userIdx < user.length) {
+    if (!matchedUserIndices.has(userIdx)) {
+      comparison.push({
+        original: '',
+        user: user[userIdx],
+        correct: false
+      });
+    }
+    userIdx++;
+  }
+
+  return comparison;
 }
 
 export function calculateScore(
@@ -93,19 +162,26 @@ export function calculateScore(
     return {
       wordMatchCount: 0,
       positionMatchCount: 0,
-      longestSequence: 0,
+      sequenceMatchCount: 0,
       totalWords: 0,
       accuracy: 0,
       wordsPerMinute: 0,
+      comparison: [],
     };
   }
 
   const wordMatchCount = countWordMatches(originalWords, userWords);
   const positionMatchCount = countPositionMatches(originalWords, userWords);
-  const longestSequence = findLongestSequence(originalWords, userWords);
+
+  // Use LCS for sequence matching - counts ALL matched words in sequence
+  const lcsMatches = computeLCS(originalWords, userWords);
+  const sequenceMatchCount = lcsMatches.length;
+
+  // Build comparison for display
+  const comparison = buildComparison(originalWords, userWords, lcsMatches);
 
   // Calculate weighted accuracy (50% sequences, 25% word match, 25% position)
-  const sequenceScore = longestSequence / totalWords;
+  const sequenceScore = sequenceMatchCount / totalWords;
   const wordMatchScore = Math.min(wordMatchCount / totalWords, 1);
   const positionScore = positionMatchCount / totalWords;
 
@@ -117,9 +193,10 @@ export function calculateScore(
   return {
     wordMatchCount,
     positionMatchCount,
-    longestSequence,
+    sequenceMatchCount,
     totalWords,
     accuracy,
     wordsPerMinute,
+    comparison,
   };
 }

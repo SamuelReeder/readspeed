@@ -1,3 +1,4 @@
+import { For } from 'solid-js';
 import type { ScoreResult } from '../utils/scoring';
 
 interface ResultsProps {
@@ -21,7 +22,7 @@ export function Results(props: ResultsProps) {
 
         <div class="text-center">
           <div class="text-4xl font-bold" style={{ color: 'var(--text)' }}>
-            {props.result.longestSequence}/{props.result.totalWords}
+            {props.result.sequenceMatchCount}/{props.result.totalWords}
           </div>
           <div class="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
             sequence
@@ -44,6 +45,26 @@ export function Results(props: ResultsProps) {
           <div class="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
             position
           </div>
+        </div>
+      </div>
+
+      {/* Visual comparison */}
+      <div class="space-y-2 text-sm">
+        <div class="flex flex-wrap gap-2 justify-center">
+          <For each={props.result.comparison}>
+            {(item) => (
+              <div class="text-center">
+                <div style={{ color: 'var(--text-muted)' }}>
+                  {item.original || '\u00A0'}
+                </div>
+                <div style={{
+                  color: item.correct ? '#22c55e' : '#ef4444'
+                }}>
+                  {item.user || (item.original ? '—' : '\u00A0')}
+                </div>
+              </div>
+            )}
+          </For>
         </div>
       </div>
 
