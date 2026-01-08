@@ -16,11 +16,11 @@ const presets = [
 export function Settings(props: SettingsProps) {
   return (
     <div class="space-y-6">
-      <div class="flex justify-center gap-4">
+      <div class="flex flex-wrap justify-center gap-2 md:gap-4">
         {presets.map(preset => (
           <button
             type="button"
-            class="px-3 py-1 text-sm whitespace-nowrap transition-opacity hover:opacity-70"
+            class="px-2 md:px-3 py-1 text-xs md:text-sm whitespace-nowrap transition-opacity hover:opacity-70"
             style={{
               color: props.intervalMs === preset.value ? 'var(--text)' : 'var(--text-muted)',
               'border-bottom': props.intervalMs === preset.value ? '1px solid var(--text)' : '1px solid transparent'
@@ -33,7 +33,7 @@ export function Settings(props: SettingsProps) {
         ))}
       </div>
 
-      <div class="flex items-center justify-center gap-8">
+      <div class="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8">
         <div class="flex items-center gap-2">
           <input
             type="range"
@@ -43,10 +43,10 @@ export function Settings(props: SettingsProps) {
             value={props.intervalMs}
             onInput={(e) => props.onIntervalChange(parseInt(e.currentTarget.value))}
             disabled={props.disabled}
-            class="w-32 h-px appearance-none cursor-pointer"
+            class="w-28 md:w-32 h-px appearance-none cursor-pointer"
             style={{ background: 'var(--text-muted)', direction: 'rtl' }}
           />
-          <span class="text-sm whitespace-nowrap" style={{ color: 'var(--text-muted)' }}>
+          <span class="text-xs md:text-sm whitespace-nowrap" style={{ color: 'var(--text-muted)' }}>
             {props.intervalMs}ms · {Math.round(60000 / props.intervalMs)} wpm
           </span>
         </div>
@@ -60,10 +60,10 @@ export function Settings(props: SettingsProps) {
             value={props.wordCount}
             onInput={(e) => props.onWordCountChange(parseInt(e.currentTarget.value))}
             disabled={props.disabled}
-            class="w-24 h-px appearance-none cursor-pointer"
+            class="w-20 md:w-24 h-px appearance-none cursor-pointer"
             style={{ background: 'var(--text-muted)' }}
           />
-          <span class="text-sm whitespace-nowrap" style={{ color: 'var(--text-muted)' }}>
+          <span class="text-xs md:text-sm whitespace-nowrap" style={{ color: 'var(--text-muted)' }}>
             {props.wordCount} words
           </span>
         </div>
