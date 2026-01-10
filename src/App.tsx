@@ -3,14 +3,19 @@ import { WordDisplay } from './components/WordDisplay';
 import { Settings } from './components/Settings';
 import { InputForm } from './components/InputForm';
 import { Results } from './components/Results';
+import { ModeToggle } from './components/ModeToggle';
+import { ComprehensionQuestions } from './components/ComprehensionQuestions';
+import { ComprehensionReview } from './components/ComprehensionReview';
 // import { Stats } from './components/Stats';
 import { createWordTimer } from './primitives/createTimer';
 import { createStats } from './primitives/createStats';
 import { createTheme } from './primitives/createTheme';
 import { getRandomText, splitIntoWords } from './utils/wordLists';
 import { calculateScore, type ScoreResult } from './utils/scoring';
+import { getRandomPassage, type Passage } from './data/passages';
 
-type GameState = 'idle' | 'running' | 'practicing' | 'input' | 'results';
+type GameState = 'idle' | 'running' | 'practicing' | 'input' | 'results'
+  | 'comprehension_reading' | 'comprehension_questions' | 'comprehension_review';
 
 function App() {
   const [gameState, setGameState] = createSignal<GameState>('idle');
@@ -19,6 +24,17 @@ function App() {
   const [currentText, setCurrentText] = createSignal(getRandomText(10));
   const [userInput, setUserInput] = createSignal('');
   const [result, setResult] = createSignal<ScoreResult | null>(null);
+
+  // Mode toggle (speed test vs comprehension)
+  const [mode, setMode] = createSignal<'speed' | 'comprehension'>('speed');
+
+  // Comprehension mode state
+  const [currentPassage, setCurrentPassage] = createSignal<Passage | null>(null);
+  const [comprehensionAnswers, setComprehensionAnswers] = createSignal<string[]>([]);
+  const [readingStartTime, setReadingStartTime] = createSignal(0);
+  const [wordsRead, setWordsRead] = createSignal(0);
+  const [seenPassageIds, setSeenPassageIds] = createSignal<string[]>([]);
+  const [loopCount, setLoopCount] = createSignal(0);
 
   const handleWordCountChange = (count: number) => {
     setWordCount(count);
@@ -108,6 +124,69 @@ function App() {
     }
   });
 
+  // Comprehension mode handlers
+  const handleStartComprehension = () => {
+    const passage = getRandomPassage(seenPassageIds());
+    setCurrentPassage(passage);
+    setSeenPassageIds(ids => [...ids, passage.id]);
+    setCurrentText(passage.text);
+    setComprehensionAnswers([]);
+    setReadingStartTime(Date.now());
+    setWordsRead(0);
+    setLoopCount(0);
+    setGameState('comprehension_reading');
+
+    setTimeout(() => {
+      timer.reset();
+      timer.start();
+    }, 50);
+  };
+
+  const handleStopComprehension = () => {
+    const passageWords = splitIntoWords(currentPassage()?.text || '').length;
+    // Total words = completed loops * passage length + current position
+    const totalWords = loopCount() * passageWords + timer.currentIndex();
+    setWordsRead(totalWords);
+
+    timer.reset();
+    setGameState('comprehension_questions');
+  };
+
+  const handleComprehensionComplete = (answers: string[]) => {
+    setComprehensionAnswers(answers);
+    setGameState('comprehension_review');
+  };
+
+  const handleComprehensionTryAnother = () => {
+    handleStartComprehension();
+  };
+
+  const handleComprehensionHome = () => {
+    timer.reset();
+    setGameState('idle');
+    setCurrentPassage(null);
+    setCurrentText(getRandomText(wordCount()));
+  };
+
+  // Calculate comprehension WPM
+  const comprehensionWpm = createMemo(() => {
+    if (wordsRead() === 0 || readingStartTime() === 0) return 0;
+    const elapsed = Date.now() - readingStartTime();
+    return Math.round((wordsRead() / elapsed) * 60000);
+  });
+
+  // Loop comprehension reading mode when passage finishes (infinite reading)
+  createMemo(() => {
+    if (timer.isFinished() && gameState() === 'comprehension_reading') {
+      // Increment loop counter before resetting
+      setLoopCount(c => c + 1);
+      setTimeout(() => {
+        timer.reset();
+        timer.start();
+      }, 50);
+    }
+  });
+
   return (
     <div class="min-h-screen flex flex-col" style={{ background: 'var(--bg)', color: 'var(--text)' }}>
       {/* Header */}
@@ -148,41 +227,76 @@ function App() {
       <main class="flex-1 flex flex-col items-center justify-center px-6">
         <div class="w-full max-w-xl">
           {/* Word Display - Always visible, takes center stage */}
-          <div class="mb-16">
-            <WordDisplay
-              word={currentWord()}
-              isRunning={gameState() === 'running' || gameState() === 'practicing'}
-              isFinished={gameState() === 'input' || gameState() === 'results'}
-            />
-          </div>
+          <Show when={gameState() !== 'comprehension_questions' && gameState() !== 'comprehension_review'}>
+            <div class="mb-16">
+              <WordDisplay
+                word={currentWord()}
+                isRunning={gameState() === 'running' || gameState() === 'practicing' || gameState() === 'comprehension_reading'}
+                isFinished={gameState() === 'input' || gameState() === 'results'}
+              />
+            </div>
+          </Show>
 
           {/* Controls below word display */}
           <Show when={gameState() === 'idle'}>
             <div class="space-y-8">
-              <Settings
-                intervalMs={intervalMs()}
-                onIntervalChange={setIntervalMs}
-                wordCount={wordCount()}
-                onWordCountChange={handleWordCountChange}
+              {/* Mode Toggle */}
+              <ModeToggle
+                mode={mode()}
+                onModeChange={setMode}
                 disabled={false}
               />
 
-              <div class="flex gap-4">
+              {/* Speed Test Mode UI */}
+              <Show when={mode() === 'speed'}>
+                <Settings
+                  intervalMs={intervalMs()}
+                  onIntervalChange={setIntervalMs}
+                  wordCount={wordCount()}
+                  onWordCountChange={handleWordCountChange}
+                  disabled={false}
+                />
+
+                <div class="flex gap-4">
+                  <button
+                    onClick={handleStartPractice}
+                    class="flex-1 py-3 font-medium transition-opacity hover:opacity-70"
+                    style={{ color: 'var(--text)', border: '1px solid var(--text-muted)' }}
+                  >
+                    practice
+                  </button>
+                  <button
+                    onClick={handleStart}
+                    class="flex-1 py-3 font-medium transition-opacity hover:opacity-70"
+                    style={{ color: 'var(--text)', border: '1px solid var(--text-muted)' }}
+                  >
+                    start
+                  </button>
+                </div>
+              </Show>
+
+              {/* Comprehension Mode UI */}
+              <Show when={mode() === 'comprehension'}>
+                <Settings
+                  intervalMs={intervalMs()}
+                  onIntervalChange={setIntervalMs}
+                  wordCount={wordCount()}
+                  onWordCountChange={handleWordCountChange}
+                  disabled={false}
+                />
+
+                <div class="text-center text-sm" style={{ color: 'var(--text-muted)' }}>
+                  Read the passage, then answer questions to test comprehension.
+                </div>
+
                 <button
-                  onClick={handleStartPractice}
-                  class="flex-1 py-3 font-medium transition-opacity hover:opacity-70"
-                  style={{ color: 'var(--text)', border: '1px solid var(--text-muted)' }}
-                >
-                  practice
-                </button>
-                <button
-                  onClick={handleStart}
-                  class="flex-1 py-3 font-medium transition-opacity hover:opacity-70"
+                  onClick={handleStartComprehension}
+                  class="w-full py-3 font-medium transition-opacity hover:opacity-70"
                   style={{ color: 'var(--text)', border: '1px solid var(--text-muted)' }}
                 >
                   start
                 </button>
-              </div>
+              </Show>
             </div>
           </Show>
 
@@ -221,6 +335,43 @@ function App() {
 
           <Show when={gameState() === 'results' && result()}>
             <Results result={result()!} onTryAgain={handleTryAgain} onHome={handleGoHome} />
+          </Show>
+
+          {/* Comprehension Reading Mode */}
+          <Show when={gameState() === 'comprehension_reading'}>
+            <div class="space-y-4">
+              <div class="text-center text-sm" style={{ color: 'var(--text-muted)' }}>
+                Reading... Click stop when ready to answer questions.
+              </div>
+              <button
+                onClick={handleStopComprehension}
+                class="w-full py-3 font-medium transition-opacity hover:opacity-70"
+                style={{ color: 'var(--text)', border: '1px solid var(--text-muted)' }}
+              >
+                stop
+              </button>
+            </div>
+          </Show>
+
+          {/* Comprehension Questions */}
+          <Show when={gameState() === 'comprehension_questions' && currentPassage()}>
+            <ComprehensionQuestions
+              questions={currentPassage()!.questions}
+              onComplete={handleComprehensionComplete}
+            />
+          </Show>
+
+          {/* Comprehension Review */}
+          <Show when={gameState() === 'comprehension_review' && currentPassage()}>
+            <ComprehensionReview
+              source={currentPassage()!.source}
+              wpm={comprehensionWpm()}
+              wordsRead={wordsRead()}
+              questions={currentPassage()!.questions}
+              userAnswers={comprehensionAnswers()}
+              onTryAnother={handleComprehensionTryAnother}
+              onHome={handleComprehensionHome}
+            />
           </Show>
         </div>
       </main>
