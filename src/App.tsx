@@ -25,7 +25,7 @@ function App() {
   const [userInput, setUserInput] = createSignal('');
   const [result, setResult] = createSignal<ScoreResult | null>(null);
 
-  // Mode toggle (speed test vs comprehension)
+  // Mode toggle (random vs passages)
   const [mode, setMode] = createSignal<'speed' | 'comprehension'>('speed');
 
   // Comprehension mode state
@@ -58,7 +58,13 @@ function App() {
   });
 
   const handleStart = () => {
-    // Don't regenerate text - use the preview text as the test
+    // For passages mode, set up a passage first
+    if (mode() === 'comprehension') {
+      const passage = getRandomPassage(seenPassageIds());
+      setCurrentPassage(passage);
+      setSeenPassageIds(ids => [...ids, passage.id]);
+      setCurrentText(passage.text);
+    }
     setUserInput('');
     setResult(null);
     setGameState('running');
@@ -85,22 +91,43 @@ function App() {
 
   const handleTryAgain = () => {
     timer.reset();
-    setGameState('idle');
-    setCurrentText(getRandomText(wordCount()));
     setUserInput('');
     setResult(null);
+    // Start another test immediately
+    handleStart();
   };
 
   const handleGoHome = () => {
     timer.reset();
     setGameState('idle');
-    setCurrentText(getRandomText(wordCount()));
+    if (mode() === 'speed') {
+      setCurrentText(getRandomText(wordCount()));
+    } else {
+      // Show a new passage preview
+      const passage = getRandomPassage(seenPassageIds());
+      setCurrentPassage(passage);
+      setCurrentText(passage.text);
+    }
     setUserInput('');
     setResult(null);
   };
 
   const handleStartPractice = () => {
-    setGameState('practicing');
+    if (mode() === 'comprehension') {
+      // Passages practice = comprehension test with questions
+      const passage = getRandomPassage(seenPassageIds());
+      setCurrentPassage(passage);
+      setSeenPassageIds(ids => [...ids, passage.id]);
+      setCurrentText(passage.text);
+      setComprehensionAnswers([]);
+      setReadingStartTime(Date.now());
+      setWordsRead(0);
+      setLoopCount(0);
+      setGameState('comprehension_reading');
+    } else {
+      // Random practice = infinite loop
+      setGameState('practicing');
+    }
     setTimeout(() => {
       timer.reset();
       timer.start();
@@ -113,7 +140,7 @@ function App() {
     setCurrentText(getRandomText(wordCount()));
   };
 
-  // Loop practice mode when words finish
+  // Loop random practice mode when words finish
   createMemo(() => {
     if (timer.isFinished() && gameState() === 'practicing') {
       setCurrentText(getRandomText(wordCount()));
@@ -124,24 +151,7 @@ function App() {
     }
   });
 
-  // Comprehension mode handlers
-  const handleStartComprehension = () => {
-    const passage = getRandomPassage(seenPassageIds());
-    setCurrentPassage(passage);
-    setSeenPassageIds(ids => [...ids, passage.id]);
-    setCurrentText(passage.text);
-    setComprehensionAnswers([]);
-    setReadingStartTime(Date.now());
-    setWordsRead(0);
-    setLoopCount(0);
-    setGameState('comprehension_reading');
-
-    setTimeout(() => {
-      timer.reset();
-      timer.start();
-    }, 50);
-  };
-
+  // Comprehension practice handlers
   const handleStopComprehension = () => {
     const passageWords = splitIntoWords(currentPassage()?.text || '').length;
     // Total words = completed loops * passage length + current position
@@ -158,7 +168,7 @@ function App() {
   };
 
   const handleComprehensionTryAnother = () => {
-    handleStartComprehension();
+    handleStartPractice();
   };
 
   const handleComprehensionHome = () => {
@@ -239,7 +249,7 @@ function App() {
 
           {/* Controls below word display */}
           <Show when={gameState() === 'idle'}>
-            <div class="space-y-8">
+            <div class="space-y-6">
               {/* Mode Toggle */}
               <ModeToggle
                 mode={mode()}
@@ -247,56 +257,33 @@ function App() {
                 disabled={false}
               />
 
-              {/* Speed Test Mode UI */}
-              <Show when={mode() === 'speed'}>
-                <Settings
-                  intervalMs={intervalMs()}
-                  onIntervalChange={setIntervalMs}
-                  wordCount={wordCount()}
-                  onWordCountChange={handleWordCountChange}
-                  disabled={false}
-                />
+              {/* Settings - always visible */}
+              <Settings
+                intervalMs={intervalMs()}
+                onIntervalChange={setIntervalMs}
+                wordCount={wordCount()}
+                onWordCountChange={handleWordCountChange}
+                disabled={false}
+                showWordCount={mode() === 'speed'}
+              />
 
-                <div class="flex gap-4">
-                  <button
-                    onClick={handleStartPractice}
-                    class="flex-1 py-3 font-medium transition-opacity hover:opacity-70"
-                    style={{ color: 'var(--text)', border: '1px solid var(--text-muted)' }}
-                  >
-                    practice
-                  </button>
-                  <button
-                    onClick={handleStart}
-                    class="flex-1 py-3 font-medium transition-opacity hover:opacity-70"
-                    style={{ color: 'var(--text)', border: '1px solid var(--text-muted)' }}
-                  >
-                    start
-                  </button>
-                </div>
-              </Show>
-
-              {/* Comprehension Mode UI */}
-              <Show when={mode() === 'comprehension'}>
-                <Settings
-                  intervalMs={intervalMs()}
-                  onIntervalChange={setIntervalMs}
-                  wordCount={wordCount()}
-                  onWordCountChange={handleWordCountChange}
-                  disabled={false}
-                />
-
-                <div class="text-center text-sm" style={{ color: 'var(--text-muted)' }}>
-                  Read the passage, then answer questions to test comprehension.
-                </div>
-
+              {/* Action buttons - unified for both modes */}
+              <div class="flex justify-center items-center gap-4">
                 <button
-                  onClick={handleStartComprehension}
-                  class="w-full py-3 font-medium transition-opacity hover:opacity-70"
+                  onClick={handleStartPractice}
+                  class="px-6 py-2 text-sm font-medium transition-opacity hover:opacity-70"
+                  style={{ color: 'var(--text)', border: '1px solid var(--text-muted)' }}
+                >
+                  practice
+                </button>
+                <button
+                  onClick={handleStart}
+                  class="px-6 py-2 text-sm font-medium transition-opacity hover:opacity-70"
                   style={{ color: 'var(--text)', border: '1px solid var(--text-muted)' }}
                 >
                   start
                 </button>
-              </Show>
+              </div>
             </div>
           </Show>
 

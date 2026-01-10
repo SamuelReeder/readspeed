@@ -6,30 +6,31 @@ interface ModeToggleProps {
 
 export function ModeToggle(props: ModeToggleProps) {
   return (
-    <div class="flex justify-center gap-1 p-1" style={{ border: '1px solid var(--text-muted)' }}>
+    <div class="flex justify-center items-center gap-3 text-sm">
       <button
         type="button"
-        class="px-4 py-2 text-sm font-medium transition-all"
+        class="transition-opacity hover:opacity-70"
         style={{
-          background: props.mode === 'speed' ? 'var(--text)' : 'transparent',
-          color: props.mode === 'speed' ? 'var(--bg)' : 'var(--text-muted)'
+          color: props.mode === 'speed' ? 'var(--text)' : 'var(--text-muted)',
+          'border-bottom': props.mode === 'speed' ? '1px solid var(--text)' : '1px solid transparent'
         }}
         onClick={() => props.onModeChange('speed')}
         disabled={props.disabled}
       >
-        speed test
+        random
       </button>
+      <span style={{ color: 'var(--text-muted)' }}>·</span>
       <button
         type="button"
-        class="px-4 py-2 text-sm font-medium transition-all"
+        class="transition-opacity hover:opacity-70"
         style={{
-          background: props.mode === 'comprehension' ? 'var(--text)' : 'transparent',
-          color: props.mode === 'comprehension' ? 'var(--bg)' : 'var(--text-muted)'
+          color: props.mode === 'comprehension' ? 'var(--text)' : 'var(--text-muted)',
+          'border-bottom': props.mode === 'comprehension' ? '1px solid var(--text)' : '1px solid transparent'
         }}
         onClick={() => props.onModeChange('comprehension')}
         disabled={props.disabled}
       >
-        comprehension
+        passages
       </button>
     </div>
   );

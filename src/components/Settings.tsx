@@ -1,26 +1,29 @@
+import { Show } from 'solid-js';
+
 interface SettingsProps {
   intervalMs: number;
   onIntervalChange: (ms: number) => void;
   wordCount: number;
   onWordCountChange: (count: number) => void;
   disabled: boolean;
+  showWordCount?: boolean;
 }
 
 const presets = [
   { label: '300ms', wpm: 200, value: 300 },
   { label: '200ms', wpm: 300, value: 200 },
   { label: '100ms', wpm: 600, value: 100 },
-  { label: '67ms', wpm: 900, value: 67 },
 ];
 
 export function Settings(props: SettingsProps) {
   return (
-    <div class="space-y-6">
-      <div class="flex flex-wrap md:flex-nowrap justify-center gap-2 md:gap-4">
+    <div class="space-y-4">
+      {/* Speed presets */}
+      <div class="flex justify-center gap-4">
         {presets.map(preset => (
           <button
             type="button"
-            class="px-2 md:px-3 py-1 text-xs md:text-sm whitespace-nowrap transition-opacity hover:opacity-70"
+            class="text-sm transition-opacity hover:opacity-70"
             style={{
               color: props.intervalMs === preset.value ? 'var(--text)' : 'var(--text-muted)',
               'border-bottom': props.intervalMs === preset.value ? '1px solid var(--text)' : '1px solid transparent'
@@ -33,7 +36,9 @@ export function Settings(props: SettingsProps) {
         ))}
       </div>
 
-      <div class="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8">
+      {/* Sliders row */}
+      <div class="flex items-center justify-center gap-6">
+        {/* Speed slider */}
         <div class="flex items-center gap-2">
           <input
             type="range"
@@ -43,30 +48,33 @@ export function Settings(props: SettingsProps) {
             value={props.intervalMs}
             onInput={(e) => props.onIntervalChange(parseInt(e.currentTarget.value))}
             disabled={props.disabled}
-            class="w-28 md:w-32 h-px appearance-none cursor-pointer"
+            class="w-24 h-px appearance-none cursor-pointer"
             style={{ background: 'var(--text-muted)', direction: 'rtl' }}
           />
-          <span class="text-xs md:text-sm whitespace-nowrap" style={{ color: 'var(--text-muted)' }}>
-            {props.intervalMs}ms · {Math.round(60000 / props.intervalMs)} wpm
+          <span class="text-xs whitespace-nowrap" style={{ color: 'var(--text-muted)' }}>
+            {Math.round(60000 / props.intervalMs)} wpm
           </span>
         </div>
 
-        <div class="flex items-center gap-2">
-          <input
-            type="range"
-            min="5"
-            max="20"
-            step="1"
-            value={props.wordCount}
-            onInput={(e) => props.onWordCountChange(parseInt(e.currentTarget.value))}
-            disabled={props.disabled}
-            class="w-20 md:w-24 h-px appearance-none cursor-pointer"
-            style={{ background: 'var(--text-muted)' }}
-          />
-          <span class="text-xs md:text-sm whitespace-nowrap" style={{ color: 'var(--text-muted)' }}>
-            {props.wordCount} words
-          </span>
-        </div>
+        {/* Word count slider - hidden for passages mode */}
+        <Show when={props.showWordCount !== false}>
+          <div class="flex items-center gap-2">
+            <input
+              type="range"
+              min="5"
+              max="20"
+              step="1"
+              value={props.wordCount}
+              onInput={(e) => props.onWordCountChange(parseInt(e.currentTarget.value))}
+              disabled={props.disabled}
+              class="w-20 h-px appearance-none cursor-pointer"
+              style={{ background: 'var(--text-muted)' }}
+            />
+            <span class="text-xs whitespace-nowrap" style={{ color: 'var(--text-muted)' }}>
+              {props.wordCount} words
+            </span>
+          </div>
+        </Show>
       </div>
     </div>
   );
