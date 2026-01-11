@@ -59,7 +59,7 @@ export function ComprehensionReview(props: ComprehensionReviewProps) {
                 <div class="text-xs mb-1" style={{ color: 'var(--text-muted)' }}>
                   Expected answer:
                 </div>
-                <div class="text-sm" style={{ color: 'var(--accent, var(--text))' }}>
+                <div class="text-sm" style={{ color: 'var(--text)' }}>
                   {question.expectedAnswer}
                 </div>
               </div>
